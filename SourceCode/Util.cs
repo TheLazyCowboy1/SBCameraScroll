@@ -1,4 +1,6 @@
 
+using UnityEngine;
+
 namespace SBCameraScroll;
 
 public static class Util {
@@ -113,6 +115,11 @@ public static class Util {
 
             cache ??= camera_texture;
             cache.LoadImage(AssetManager.PreLoadTexture(flatPath), true);
+
+            if (!Util_UpdateRenderTexture(render_texture, new(0, 0, cache.width, cache.height)))
+            {
+                return false;
+            }
             Graphics.CopyTexture(cache, render_texture);
 
             room.abstractRoom.GetFields().min_camera_position.Set(0, 0);
@@ -197,12 +204,18 @@ public static class Util {
             }
 
             int camNum = room_camera.cameraNumber;
+            Texture2D levelTex = Get_Level_Texture(camNum, 0);
             if (Get_Level_Texture_Room_Name(camNum, 0) != room_name)
             {
-                Get_Level_Texture(camNum, 0).LoadImage(AssetManager.PreLoadTexture(flatPath), true);
+                levelTex.LoadImage(AssetManager.PreLoadTexture(flatPath), true);
             }
+
             render_texture ??= room_camera.Render_Texture();
-            Graphics.CopyTexture(Get_Level_Texture(camNum, 0), render_texture);
+            if (!Util_UpdateRenderTexture(render_texture, new(0, 0, levelTex.width, levelTex.height)))
+            {
+                return false;
+            }
+            Graphics.CopyTexture(levelTex, render_texture);
 
             room.abstractRoom.GetFields().min_camera_position.Set(0, 0);
 
