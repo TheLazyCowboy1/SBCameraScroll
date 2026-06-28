@@ -153,8 +153,45 @@ public static class Util {
         return true;
     }
 
-    public static bool Util_LoadRoomTextureIntoRenderTexture(RoomCamera room_camera, string room_name, RenderTexture? render_texture = null) {
-        if (Util_GetCameraPositionsAndLevelTextureRectangle(room_name) is not (Vector2[] camera_positions, RectInt rect)) {
+    private static bool Util_LoadRoomFlatTextureIntoRenderTexture(RoomCamera room_camera, string room_name, RenderTexture? render_texture)
+    {
+        //search for _flat.png room texture
+        try
+        {
+            string flatPath = WorldLoader.FindRoomFile(room_name, false, "_flat.png");
+            if (!File.Exists(flatPath))
+            {
+                return false;
+            }
+
+            string screen1Path = WorldLoader.FindRoomFile(room_name, false, "_1.png");
+            if (File.Exists(screen1Path) && File.GetCreationTimeUtc(flatPath) < File.GetCreationTimeUtc(screen1Path))
+            {
+                return false;
+            }
+
+            (room_camera.loadingRoom ?? room_camera.room).cameraPositions[0].Set(0, 0); //set camera position to 0 so it's aligned right?
+            Texture2D flatTexture = new(1, 1);
+            flatTexture.LoadImage(AssetManager.PreLoadTexture(flatPath));
+            Graphics.CopyTexture(flatTexture, render_texture);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"{mod_id}.Util_LoadRoomFlatTextureIntoRenderTexture: {ex}");
+        }
+        return false;
+    }
+
+    public static bool Util_LoadRoomTextureIntoRenderTexture(RoomCamera room_camera, string room_name, RenderTexture? render_texture = null)
+    {
+        if (Util_LoadRoomFlatTextureIntoRenderTexture(room_camera, room_name, render_texture))
+        {
+            return true;
+        }
+
+        if (Util_GetCameraPositionsAndLevelTextureRectangle(room_name) is not (Vector2[] camera_positions, RectInt rect))
+        {
             return false;
         }
 
