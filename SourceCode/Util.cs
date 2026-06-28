@@ -122,7 +122,7 @@ public static class Util {
             }
             Graphics.CopyTexture(cache, render_texture);
 
-            room.abstractRoom.GetFields().min_camera_position.Set(0, 0);
+            room.abstractRoom.GetFields().min_camera_position.Set(-180, -100); //I genuinely do not know why these values are correct
 
             return true;
         }
@@ -217,7 +217,7 @@ public static class Util {
             }
             Graphics.CopyTexture(levelTex, render_texture);
 
-            room.abstractRoom.GetFields().min_camera_position.Set(0, 0);
+            room.abstractRoom.GetFields().min_camera_position.Set(-180, -100); //I genuinely do not know why these values are correct
 
             return true;
         }
