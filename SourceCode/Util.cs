@@ -114,7 +114,7 @@ public static class Util {
             }
 
             cache ??= camera_texture;
-            cache.LoadImage(AssetManager.PreLoadTexture(flatPath), true);
+            cache.LoadImage(AssetManager.PreLoadTexture(flatPath), true); //texture does not need to be readable, since it's temporary
 
             if (!Util_UpdateRenderTexture(render_texture, new(0, 0, cache.width, cache.height)))
             {
@@ -122,7 +122,7 @@ public static class Util {
             }
             Graphics.CopyTexture(cache, render_texture);
 
-            room.abstractRoom.GetFields().min_camera_position.Set(-180, -100); //I genuinely do not know why these values are correct
+            room.abstractRoom.GetFields().min_camera_position.Set(0.5f * (room.PixelWidth - render_texture.width), 0.5f * (room.PixelHeight - render_texture.height) - 20);
 
             return true;
         }
@@ -207,7 +207,7 @@ public static class Util {
             Texture2D levelTex = Get_Level_Texture(camNum, 0);
             if (Get_Level_Texture_Room_Name(camNum, 0) != room_name)
             {
-                levelTex.LoadImage(AssetManager.PreLoadTexture(flatPath), true);
+                levelTex.LoadImage(AssetManager.PreLoadTexture(flatPath), false); //texture needs to be readable
             }
 
             render_texture ??= room_camera.Render_Texture();
@@ -217,7 +217,7 @@ public static class Util {
             }
             Graphics.CopyTexture(levelTex, render_texture);
 
-            room.abstractRoom.GetFields().min_camera_position.Set(-180, -100); //I genuinely do not know why these values are correct
+            room.abstractRoom.GetFields().min_camera_position.Set(0.5f * (room.PixelWidth - render_texture.width), 0.5f * (room.PixelHeight - render_texture.height) - 20);
 
             return true;
         }
