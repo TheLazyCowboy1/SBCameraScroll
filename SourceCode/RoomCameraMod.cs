@@ -587,9 +587,9 @@ public static class RoomCameraMod {
                 // Functions like GetPixels() won't work. Therefore, don't use
                 // room_camera.levelTexture since other mods might try to read
                 // pixels from it.
-                hasSucceeded = Util_LoadRoomTextureIntoRenderTexture(room_name, render_texture, cache: Util.camera_texture);
+                hasSucceeded = Util_LoadRoomTextureIntoRenderTexture(room, room_name, render_texture, cache: Util.camera_texture);
             } else {
-                hasSucceeded = Util_LoadRoomTextureIntoRenderTexture(room_camera, room_name);
+                hasSucceeded = Util_LoadRoomTextureIntoRenderTexture(room, room_camera, room_name);
             }
 
             if (!hasSucceeded)
