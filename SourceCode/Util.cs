@@ -96,6 +96,18 @@ public static class Util {
         wrapMode = TextureWrapMode.Clamp
     };
 
+    private static void Util_SetFlatRoomMinPos(Room room, int flatTexWidth, int flatTexHeight)
+    {
+        Vector2 lastCamPos = room.cameraPositions[room.cameraPositions.Length - 1];
+        Vector2 minPos = lastCamPos - new Vector2(30000, 30000);
+        if (lastCamPos.x <= 20000)
+        {
+            minPos.Set(0.5f * (room.PixelWidth - flatTexWidth), 0.5f * (room.PixelHeight - flatTexHeight) - 20); //fallback calculation; may be inaccurate
+            Debug.Log($"{mod_id}.Util_SetFlatRoomMinPos: [WARNING] Could not find proper camera position; using a fallback calculation.");
+        }
+        room.abstractRoom.GetFields().min_camera_position = minPos;
+    }
+
     private static bool Util_LoadRoomFlatTextureIntoRenderTexture(Room room, string room_name, RenderTexture render_texture, Texture2D? cache = null)
     {
         //search for _flat.png room texture
@@ -122,7 +134,49 @@ public static class Util {
             }
             Graphics.CopyTexture(cache, render_texture);
 
-            room.abstractRoom.GetFields().min_camera_position.Set(0.5f * (room.PixelWidth - render_texture.width), 0.5f * (room.PixelHeight - render_texture.height) - 20);
+            Util_SetFlatRoomMinPos(room, render_texture.width, render_texture.height);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"{mod_id}.Util_LoadRoomFlatTextureIntoRenderTexture: {ex}");
+        }
+        return false;
+    }
+
+    private static bool Util_LoadRoomFlatTextureIntoRenderTexture(Room room, RoomCamera room_camera, string room_name, RenderTexture? render_texture)
+    {
+        //search for _flat.png room texture
+        try
+        {
+            string flatPath = WorldLoader.FindRoomFile(room_name, false, "_flat.png");
+            if (!File.Exists(flatPath))
+            {
+                return false;
+            }
+
+            string screen1Path = WorldLoader.FindRoomFile(room_name, false, "_1.png");
+            if (File.Exists(screen1Path) && File.GetCreationTimeUtc(flatPath) < File.GetCreationTimeUtc(screen1Path))
+            {
+                return false;
+            }
+
+            int camNum = room_camera.cameraNumber;
+            Texture2D levelTex = Get_Level_Texture(camNum, 0);
+            if (Get_Level_Texture_Room_Name(camNum, 0) != room_name)
+            {
+                levelTex.LoadImage(AssetManager.PreLoadTexture(flatPath), false); //texture needs to be readable
+            }
+
+            render_texture ??= room_camera.Render_Texture();
+            if (!Util_UpdateRenderTexture(render_texture, new(0, 0, levelTex.width, levelTex.height)))
+            {
+                return false;
+            }
+            Graphics.CopyTexture(levelTex, render_texture);
+
+            Util_SetFlatRoomMinPos(room, render_texture.width, render_texture.height);
 
             return true;
         }
@@ -184,48 +238,6 @@ public static class Util {
             }
         }
         return true;
-    }
-
-    private static bool Util_LoadRoomFlatTextureIntoRenderTexture(Room room, RoomCamera room_camera, string room_name, RenderTexture? render_texture)
-    {
-        //search for _flat.png room texture
-        try
-        {
-            string flatPath = WorldLoader.FindRoomFile(room_name, false, "_flat.png");
-            if (!File.Exists(flatPath))
-            {
-                return false;
-            }
-
-            string screen1Path = WorldLoader.FindRoomFile(room_name, false, "_1.png");
-            if (File.Exists(screen1Path) && File.GetCreationTimeUtc(flatPath) < File.GetCreationTimeUtc(screen1Path))
-            {
-                return false;
-            }
-
-            int camNum = room_camera.cameraNumber;
-            Texture2D levelTex = Get_Level_Texture(camNum, 0);
-            if (Get_Level_Texture_Room_Name(camNum, 0) != room_name)
-            {
-                levelTex.LoadImage(AssetManager.PreLoadTexture(flatPath), false); //texture needs to be readable
-            }
-
-            render_texture ??= room_camera.Render_Texture();
-            if (!Util_UpdateRenderTexture(render_texture, new(0, 0, levelTex.width, levelTex.height)))
-            {
-                return false;
-            }
-            Graphics.CopyTexture(levelTex, render_texture);
-
-            room.abstractRoom.GetFields().min_camera_position.Set(0.5f * (room.PixelWidth - render_texture.width), 0.5f * (room.PixelHeight - render_texture.height) - 20);
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"{mod_id}.Util_LoadRoomFlatTextureIntoRenderTexture: {ex}");
-        }
-        return false;
     }
 
     public static bool Util_LoadRoomTextureIntoRenderTexture(Room room, RoomCamera room_camera, string room_name, RenderTexture? render_texture = null)
