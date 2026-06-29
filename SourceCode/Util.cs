@@ -98,12 +98,20 @@ public static class Util {
 
     private static void Util_SetFlatRoomMinPos(Room room, int flatTexWidth, int flatTexHeight)
     {
+        //-(800 - ph + x) = y //x = 29940 = 30000 - bm
+        //-(800 - ph + 30000 - bm) = y //y = lastCamPos.y
+        //bm = y + 800 - ph + 30000 //bm = BOTTOM margin
+        //t = bm + ph + tm
+        //-tm = bm + ph - t
+        //-tm = y + 30800 - t
+
         Vector2 lastCamPos = room.cameraPositions[room.cameraPositions.Length - 1];
-        Vector2 minPos = lastCamPos - new Vector2(30000, 30000);
+        Vector2 minPos = new(lastCamPos.x - 30000, lastCamPos.y + 30800 - flatTexHeight);
+
         if (lastCamPos.x <= 20000)
         {
             minPos.Set(0.5f * (room.PixelWidth - flatTexWidth), 0.5f * (room.PixelHeight - flatTexHeight) - 20); //fallback calculation; may be inaccurate
-            Debug.Log($"{mod_id}.Util_SetFlatRoomMinPos: [WARNING] Could not find proper camera position; using a fallback calculation.");
+            Debug.Log($"{mod_id}.Util_SetFlatRoomMinPos: [WARNING] Could not find proper camera position for room {room.abstractRoom.name}; using a fallback calculation.");
         }
         room.abstractRoom.GetFields().min_camera_position = minPos;
     }
