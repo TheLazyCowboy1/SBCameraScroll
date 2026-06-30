@@ -98,6 +98,7 @@ public static class Util {
 
     private static void Util_SetFlatRoomMinPos(Room room, int flatTexWidth, int flatTexHeight)
     {
+        return; //this is now unused
         //-(800 - ph + x) = y //x = 29940 = 30000 - bm
         //-(800 - ph + 30000 - bm) = y //y = lastCamPos.y
         //bm = y + 800 - ph + 30000 //bm = BOTTOM margin
@@ -135,6 +136,14 @@ public static class Util {
 
             cache ??= camera_texture;
             cache.LoadImage(AssetManager.PreLoadTexture(flatPath), true); //texture does not need to be readable, since it's temporary
+
+            //compare image with room bounding box; if they are different, then this is the wrong image for the room
+            RectInt? rect = CalculateLevelTextureRectangle(room_name);
+            if (rect is RectInt rectval && (rectval.width != cache.width || rectval.height != cache.height))
+            {
+                Debug.Log($"{mod_id}.Util_LoadRoomFlatTextureIntoRenderTexture: [WARNING] Room size and flat texture mismatch! Room size = {rectval.width}x{rectval.height}; texture size = {cache.width}x{cache.height}");
+                return false;
+            }
 
             if (!Util_UpdateRenderTexture(render_texture, new(0, 0, cache.width, cache.height)))
             {
@@ -175,6 +184,14 @@ public static class Util {
             if (Get_Level_Texture_Room_Name(camNum, 0) != room_name)
             {
                 levelTex.LoadImage(AssetManager.PreLoadTexture(flatPath), false); //texture needs to be readable
+            }
+
+            //compare image with room bounding box; if they are different, then this is the wrong image for the room
+            RectInt? rect = CalculateLevelTextureRectangle(room_name);
+            if (rect is RectInt rectval && (rectval.width != levelTex.width || rectval.height != levelTex.height))
+            {
+                Debug.Log($"{mod_id}.Util_LoadRoomFlatTextureIntoRenderTexture: [WARNING] Room size and flat texture mismatch! Room size = {rectval.width}x{rectval.height}; texture size = {levelTex.width}x{levelTex.height}");
+                return false;
             }
 
             render_texture ??= room_camera.Render_Texture();
